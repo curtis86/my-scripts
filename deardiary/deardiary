@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+
+set -u
+
+filename="mydiary"
+dec_ext="txt"
+enc_ext="lock"
+enc_filename="${filename}.${enc_ext}"
+dec_filename="${filename}.${dec_ext}"
+editor="vim"
+
+function usage() {
+echo -e "Usage:
+$( basename $0 ) <option>
+
+Options:
+  lock\t\tLocks diary
+  unlock\tUnlocks diary
+  edit\t\tEdit diary
+  check\t\tChecks if diary is encrypted or not
+"
+
+}
+
+function yesno() {
+  local _ans
+  echo
+  echo -n "$@ <y/n> "
+  read _ans < /dev/tty
+  case "${_ans}" in
+    y|Y) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+function is_enc() {
+  export _is_enc_output
+  if _is_enc_output="$( file ${1} | grep "openssl enc'd data with salted password" 2>&1 )" ; then
+    return 0
+  else
+    retunn 1
+  fi
+}
+
+function lock() {
+  export _lock_output
+  if [ "$( check_state )" == "decrypted" ]; then
+    if yesno "Lock file?" ; then
+      if _lock_output="$( openssl des3 -in ${dec_filename} -out ${enc_filename} 2>&1 )" ; then
+        echo "File locked!"
+        rm "${dec_filename}"
+      else
+        echo "Failed to lock file: "
+        echo "${_lock_output}"
+        exit 1
+      fi
+    else
+      echo "Skipping."
+      exit 
+    fi
+  else
+    echo
+    echo "Error: file is not in decrypted state. Cannot encrypt."
+  fi
+}
+
+function unlock() {
+  export _unlock_output
+  if [ "$( check_state )" == "encrypted" ]; then
+    if yesno "Unlock file?" ; then
+      if _unlock_output="$( openssl des3 -d -in ${enc_filename} -out ${dec_filename} 2>&1 )" ; then
+        echo "File unlocked!"
+        rm "${enc_filename}"
+      else
+        rm "${dec_filename}"
+        echo "Failed to unlock file: "
+        echo "${_unlock_output}"
+        exit 1
+      fi
+    else
+      echo "Skipping."
+      exit 
+    fi
+  else
+    echo
+    echo "Error: file is not in encrypted state. Cannot decrypt."
+  fi
+}
+
+function check_state() {
+  if [[ ! -f "${enc_filename}" ]] && [[ ! -f "${dec_filename}" ]]; then
+    echo
+    state="not_found"
+  elif [ -f "${enc_filename}" ]; then
+    if is_enc "${enc_filename}" ; then
+      state="encrypted"
+    else
+      state="decrypted"
+    fi
+  elif [ -f "${dec_filename}" ]; then
+      state="decrypted"
+  fi
+  [ -z "${state}" ] && state="unknown"
+  echo "${state}"
+}
+
+function askedit() {
+  if yesno "Do you want to open file ${dec_filename} ?" ; then
+    "${editor}" "${dec_filename}"
+  fi
+}
+
+main() {
+  OPTS=( $@ )
+
+  # Check filenames
+  if [ "${enc_filename}" == "${dec_filename}" ]; then
+    echo
+    echo "Error: encrypted and decrypted filenames cannot be the same."
+    exit 1
+  fi
+
+  # If nothing exists yet, ask to create it
+  if [[ ! -f "${enc_filename}" ]] && [[ ! -f "${dec_filename}" ]]; then
+    if yesno "Encrypted or decrypted file not found. Create new DECRYPTED file?" ; then
+      if touch "${dec_filename}" ; then
+        echo "New file ${dec_filename} created."
+      fi
+    else
+      echo "Exiting" && exit 0
+    fi
+  fi
+
+  [ $# -eq 0 ] && { echo && echo "No options set." && usage ;  exit ;}
+
+  export state
+
+  for option in "${OPTS[@]}" ; do
+    case "${option}" in
+      lock) lock ;;
+      unlock) unlock && askedit ;;
+      edit) "${editor}" ;;
+      check) echo "The file state is currently: $( check_state ) "  ;;
+      *) usage && exit 1 ;;
+    esac
+    shift
+  done
+
+}; main $@
