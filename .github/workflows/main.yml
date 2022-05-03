@@ -16,7 +16,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  test:
+  Test:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -24,6 +24,10 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+
+      # Check shellcheck version
+      - name: Shellcheck version
+        run: shellcheck --version
 
       # Runs shellcheck for each script directory
       - name: Run shellcheck on each script directory

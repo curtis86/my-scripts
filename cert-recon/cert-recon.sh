@@ -11,15 +11,6 @@ usage() {
 	echo -e "$( basename "$0" ) [-d domain]"
 }
 
-hasDns() {
-	local _dns=""
-	if ! _dns="$( dig +short "$1" 2>&1 > /dev/null )" ; then
-		return 1
-	else
-		return 0
-	fi
-}
-
 if (( OPTIND == 0 )); then
 	echo -e "\nNo options specified."
 	usage && exit 1
