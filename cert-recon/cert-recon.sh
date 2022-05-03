@@ -5,6 +5,7 @@ set -u
 
 domain=""
 search=""
+certCount=0
 
 usage() {
 	echo -e "\nUsage:"
@@ -42,7 +43,7 @@ shift "$(($OPTIND -1))"
 
 export data certs;
 
-if ! data="$( curl -s -f https://crt.sh/?q=%25.${domain} | grep "<TD>" | uniq | grep "${domain}" )" ; then
+if ! data="$( curl -s -f https://crt.sh/?q=%25."${domain}" | grep "<TD>" | uniq | grep "${domain}" )" ; then
 	echo "Error: couldn't retrieve details for ${domain}. Exiting." >&2
 fi
 
@@ -61,13 +62,11 @@ if ! certs=( $( echo "${data}" | sed 's/<TD>//g' | sed 's/<\/TD>//g' | tr -d ' '
 	else
 		echo "Error: couldn't parse results." >&2
 	fi
-else
-  certCount=${#certs[@]} 2>/dev/null
 fi
 
 c=1
 
-echo "Got ${certCount} certs: "
+echo "Got ${#certs[@]} certs: "
 for cert in "${certs[@]}" ; do
 	echo "${c}. ${cert}"
 	((c++))

@@ -9,7 +9,7 @@ domain=$1
 
 [ -z "$( dig +short "${domain}" )" ] && { echo "Error: no DNS/domain found." >&2 ; exit 1 ;}
 
-if ! certOutput="$( openssl s_client -servername $domain -connect $domain:443 <<< "Q"  2>&1 )" ; then
+if ! certOutput="$( openssl s_client -servername "${domain}" -connect "${domain}":443 <<< "Q"  2>&1 )" ; then
 	echo -e "\nError: unable to get SSL info." >&2 ; exit 1
 fi
 

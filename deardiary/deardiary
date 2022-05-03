@@ -38,7 +38,7 @@ function is_enc() {
   if _is_enc_output="$( file ${1} | grep "openssl enc'd data with salted password" 2>&1 )" ; then
     return 0
   else
-    retunn 1
+    return 1
   fi
 }
 
