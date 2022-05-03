@@ -4,17 +4,16 @@ set -o pipefail
 set -u
 
 domain=""
-search=""
-certCount=0
+#search=""
 
 usage() {
 	echo -e "\nUsage:"
-	echo -e "$(basename $0) [-d domain]"
+	echo -e "$( basename "$0" ) [-d domain]"
 }
 
 hasDns() {
-	local _dns
-	if ! _dns="$( dig +short $1 2>&1 > /dev/null )" ; then
+	local _dns=""
+	if ! _dns="$( dig +short "$1" 2>&1 > /dev/null )" ; then
 		return 1
 	else
 		return 0
@@ -30,14 +29,12 @@ while getopts 'd:s:' OPTION; do
   case "$OPTION" in
     d)
       domain="$OPTARG"	;;
-		r) resolvableOnly=true ;;
-    ?)
-			usage
-      exit 1
-      ;;
+		#r) resolvableOnly=true ;;
+    ?) usage ; exit 1 ;;
   esac
+
 done
-shift "$(($OPTIND -1))"
+shift "$(( OPTIND -1 ))"
 
 [ -z "${domain}" ] && usage && exit 1;
 
@@ -53,16 +50,11 @@ if [ -z "${data}" ]; then
 fi
 
 # will die on a very large result
-if ! certs=( $( echo "${data}" | sed 's/<TD>//g' | sed 's/<\/TD>//g' | tr -d ' ' | tr '<BR>' '\n' | sort | uniq ) ) ; then
+while read -r line; do 
+	[ -z "${line}" ] && continue
+	certs+=( "${line}" ); 
+done < <( echo "${data}" | sed 's/<TD>//g' | sed 's/<\/TD>//g' | tr -d ' ' | tr '<BR>' '\n' | sort | uniq )
 
-	# error on no result, before generic result
-	certCount=${#certs[@]} 2>/dev/null
-	if [ ${certCount} -eq 0 ]; then
-  	echo "Couldn't find any certificates for ${domain}, exiting."  && exit 1
-	else
-		echo "Error: couldn't parse results." >&2
-	fi
-fi
 
 c=1
 
