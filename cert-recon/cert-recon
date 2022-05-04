@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Decription: retrieves all certificates issued for a specified domain name from public certificate transparency logs, using https://crt.sh/
+# Author: Curtis Kneisel
+# GitHub: https://github.com/curtis86/my-scripts
+
 set -o pipefail
 set -u
 

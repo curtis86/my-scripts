@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# Decription: continuously prints out the load time components of a URL (DNS time, TTFB, etc) - useful for observing intermittent issues or just general performance
+# Author: Curtis Kneisel
+# GitHub: https://github.com/curtis86/my-scripts
+
+set -u
+set -o pipefail
+
+if ! which curl >/dev/null 2>&1 ; then
+  echo "Error: this script requires curl to operate." >&2
+  exit 1
+fi
+
+[ $# -ne 1 ] && { echo "Usage: $( basename "$0" ) <domain-name>" ; exit 1; }
+
+connectionTimeout=5
+userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36"
+checkDelay=3 # <---- update this to change the check delay (default 3)
+totalRunCount=0
+lastTotalTime=0
+
+export curlOutput;
+
+while true; do  
+if curlOutput="$( curl -L -k -s -m "${connectionTimeout}" -A "${userAgent}" -w 'finalUrl=%{url_effective}\nresolvedIp=%{remote_ip}\nredirectCount=%{num_redirects}\nsslVerified=%{ssl_verify_result}\npageSize=%{size_download}\ndownloadSpeed=%{speed_download}\nhttpCode=%{http_code}\nlookup_time=%{time_namelookup}\nconnectTime=%{time_connect}\nprotocolTime=%{time_pretransfer}\nttfb=%{time_starttransfer}\nredirectTime=%{time_redirect}\ntotalTime=%{time_total}' -o /dev/null "$1" )"; then
+
+  curlStatus="OK"
+  httpCode="$( echo "${curlOutput}" | grep "^httpCode" | cut -d= -f2 )"
+  finalUrl="$( echo "${curlOutput}" | grep "^finalUrl" | cut -d= -f2 )"
+  resolvedIp="$( echo "${curlOutput}" | grep "^resolvedIp" | cut -d= -f2 )"
+  redirectCount="$( echo "${curlOutput}" | grep "^redirectCount" | cut -d= -f2 )"
+  sslVerified="$( echo "${curlOutput}" | grep "^sslVerified" | cut -d= -f2 )"
+  pageSize="$( echo "${curlOutput}" | grep "^pageSize" | cut -d= -f2 )"
+  downloadSpeed="$( echo "${curlOutput}" | grep "^downloadSpeed" | cut -d= -f2 )"
+  dnsTime="$( echo "${curlOutput}" | grep "^lookup_time" | cut -d= -f2 )"
+  connectTime="$( echo "${curlOutput}" | grep "^connectTime" | cut -d= -f2 )"
+  protocolTime="$( echo "${curlOutput}" | grep "^protocolTime" | cut -d= -f2 )"
+  ttfbTime="$( echo "${curlOutput}" | grep "^ttfb" | cut -d= -f2 )"
+  redirectTime="$( echo "${curlOutput}" | grep "^redirectTime" | cut -d= -f2 )"
+  totalTime="$( echo "${curlOutput}" | grep "^totalTime" | cut -d= -f2 )"
+
+  pageSize="$( echo "scale=2; ${pageSize} / 1024" | bc )"
+  downloadSpeed="$( echo "scale=2; ${downloadSpeed} / 1024" | bc )"
+
+  if [ "${sslVerified}" -eq 0 ]; then
+    sslVerified="Y"
+  else
+    sslVerified="N"
+  fi
+
+  # Time diff;  
+  timeDiff="$( bc <<< "scale=2; ${totalTime} - ${lastTotalTime}" | sed 's/^\./0./' | sed 's/^\-\./\-0./')"
+  lastTotalTime=${totalTime}
+
+	# It's not pretty, but it gets the job done...
+columnFormatted="$( echo -e "Status\tHTTP_Code\tFinal_URL\tResolved_IP\tRedirect_Count\tSSL_Verified\tPage_Size\tDownload_Speed\tDNS_Time\tConnect_Time\tProtocol_Time\tTTFB\tRedirect_Time\tTotal_Time\tDiff
+${curlStatus}\t${httpCode}\t${finalUrl}\t${resolvedIp}\t${redirectCount}\t${sslVerified}\t${pageSize}\t${downloadSpeed}\t${dnsTime}\t${connectTime}\t${protocolTime}\t${ttfbTime}\t${redirectTime}\t${totalTime}\t${timeDiff}" | column -t )"
+  [ $totalRunCount -eq 0 ] && echo -e "${columnFormatted}"
+  [ $totalRunCount -gt 1 ] && echo -e "${columnFormatted}" | grep -v "^Status"
+else
+  # Only occurs if unable to retreive the specified URL at all
+  echo "FAIL" | column -t
+fi
+  ((totalRunCount++))
+sleep ${checkDelay}
+done

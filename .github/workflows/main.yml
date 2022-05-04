@@ -29,7 +29,15 @@ jobs:
       - name: Shellcheck version
         run: shellcheck --version
 
-      # Runs shellcheck for each script directory
-      - name: Run shellcheck on each script directory
-        run: shellcheck */*.sh
-        
+      # Runs shellcheck for each script
+      - name: [shellcheck] cert-check
+        run: shellcheck cert-check/cert-check
+
+      - name: [shellcheck] cert-recon
+        run: shellcheck cert-recon/cert-recon
+
+      - name: [shellcheck] deardiary
+        run: shellcheck deardiary/deardiary
+
+      - name: [shellcheck] http-check
+        run: shellcheck http-check/http-check

@@ -1,6 +1,6 @@
 # deardiary
 
-A script to lock (encrypt) and unlock (decrypt) a plain-text diary file.
+Lock (encrypt) and unlock (decrypt) a plain-text diary file.
 
 ### Usage
 

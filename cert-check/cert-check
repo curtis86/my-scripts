@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Decription: retrieves the x509 SSL certificate data for a domain that's using HTTPS
+# Author: Curtis Kneisel
+# GitHub: https://github.com/curtis86/my-scripts
+
 set -o pipefail
 set -u
 

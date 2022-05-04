@@ -4,7 +4,7 @@ Retrieves all certificates issued for a particular domain name from public certi
 
 ## Usage
 
-`cert-recon.sh [-d domain]`
+`cert-recon [-d domain]`
 
 ## Example
 

@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
 
-set -u
+# Decription: lock (encrypt) and unlock (decrypt) a plain-text diary file
+# Author: Curtis Kneisel
+# GitHub: https://github.com/curtis86/my-scripts
 
+set -u
+set -o pipefail
+
+# Edit this if you want to change the path and/or filename of your diary file
 filename="mydiary"
-dec_ext="txt"
-enc_ext="lock"
-enc_filename="${filename}.${enc_ext}"
-dec_filename="${filename}.${dec_ext}"
+
+decryptedExtension="txt"
+encryptedExtension="lock"
+encryptedFileName="${filename}.${encryptedExtension}"
+decrytpedFileName="${filename}.${decryptedExtension}"
 editor="vim"
 
 function usage() {
 echo -e "Usage:
-$( basename $0 ) <option>
+$( basename "$0" ) <option>
 
 Options:
   lock\t\tLocks diary
@@ -25,8 +32,8 @@ Options:
 function yesno() {
   local _ans
   echo
-  echo -n "$@ <y/n> "
-  read _ans < /dev/tty
+  echo -n "$* <y/n> "
+  read -r _ans < /dev/tty
   case "${_ans}" in
     y|Y) return 0 ;;
     *) return 1 ;;
@@ -35,7 +42,7 @@ function yesno() {
 
 function is_enc() {
   export _is_enc_output
-  if _is_enc_output="$( file ${1} | grep "openssl enc'd data with salted password" 2>&1 )" ; then
+  if _is_enc_output="$( file "$1" | grep "openssl enc'd data with salted password" 2>&1 )" ; then
     return 0
   else
     return 1
@@ -46,9 +53,9 @@ function lock() {
   export _lock_output
   if [ "$( check_state )" == "decrypted" ]; then
     if yesno "Lock file?" ; then
-      if _lock_output="$( openssl des3 -in ${dec_filename} -out ${enc_filename} 2>&1 )" ; then
+      if _lock_output="$( openssl des3 -in ${decrytpedFileName} -out ${encryptedFileName} 2>&1 )" ; then
         echo "File locked!"
-        rm "${dec_filename}"
+        rm "${decrytpedFileName}"
       else
         echo "Failed to lock file: "
         echo "${_lock_output}"
@@ -68,11 +75,11 @@ function unlock() {
   export _unlock_output
   if [ "$( check_state )" == "encrypted" ]; then
     if yesno "Unlock file?" ; then
-      if _unlock_output="$( openssl des3 -d -in ${enc_filename} -out ${dec_filename} 2>&1 )" ; then
+      if _unlock_output="$( openssl des3 -d -in ${encryptedFileName} -out ${decrytpedFileName} 2>&1 )" ; then
         echo "File unlocked!"
-        rm "${enc_filename}"
+        rm "${encryptedFileName}"
       else
-        rm "${dec_filename}"
+        rm "${decrytpedFileName}"
         echo "Failed to unlock file: "
         echo "${_unlock_output}"
         exit 1
@@ -88,16 +95,16 @@ function unlock() {
 }
 
 function check_state() {
-  if [[ ! -f "${enc_filename}" ]] && [[ ! -f "${dec_filename}" ]]; then
+  if [[ ! -f "${encryptedFileName}" ]] && [[ ! -f "${decrytpedFileName}" ]]; then
     echo
     state="not_found"
-  elif [ -f "${enc_filename}" ]; then
-    if is_enc "${enc_filename}" ; then
+  elif [ -f "${encryptedFileName}" ]; then
+    if is_enc "${encryptedFileName}" ; then
       state="encrypted"
     else
       state="decrypted"
     fi
-  elif [ -f "${dec_filename}" ]; then
+  elif [ -f "${decrytpedFileName}" ]; then
       state="decrypted"
   fi
   [ -z "${state}" ] && state="unknown"
@@ -105,26 +112,26 @@ function check_state() {
 }
 
 function askedit() {
-  if yesno "Do you want to open file ${dec_filename} ?" ; then
-    "${editor}" "${dec_filename}"
+  if yesno "Do you want to open file ${decrytpedFileName} ?" ; then
+    "${editor}" "${decrytpedFileName}"
   fi
 }
 
 main() {
-  OPTS=( $@ )
+  OPTS=( "$@" )
 
   # Check filenames
-  if [ "${enc_filename}" == "${dec_filename}" ]; then
+  if [ "${encryptedFileName}" == "${decrytpedFileName}" ]; then
     echo
     echo "Error: encrypted and decrypted filenames cannot be the same."
     exit 1
   fi
 
   # If nothing exists yet, ask to create it
-  if [[ ! -f "${enc_filename}" ]] && [[ ! -f "${dec_filename}" ]]; then
-    if yesno "Encrypted or decrypted file not found. Create new DECRYPTED file?" ; then
-      if touch "${dec_filename}" ; then
-        echo "New file ${dec_filename} created."
+  if [[ ! -f "${encryptedFileName}" ]] && [[ ! -f "${decrytpedFileName}" ]]; then
+    if yesno "Encrypted or decrypted file not found. Create new DECRYPTED file? (${decrytpedFileName})" ; then
+      if touch "${decrytpedFileName}" && chmod 0600 "${decrytpedFileName}" ; then
+        echo "New file ${decrytpedFileName} created."
       fi
     else
       echo "Exiting" && exit 0
@@ -146,4 +153,4 @@ main() {
     shift
   done
 
-}; main $@
+}; main "$@"
