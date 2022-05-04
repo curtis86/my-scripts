@@ -30,14 +30,14 @@ jobs:
         run: shellcheck --version
 
       # Runs shellcheck for each script
-      - name: [shellcheck] cert-check
+      - name: shellcheck - cert-check
         run: shellcheck cert-check/cert-check
 
-      - name: [shellcheck] cert-recon
+      - name: shellcheck - cert-recon
         run: shellcheck cert-recon/cert-recon
 
-      - name: [shellcheck] deardiary
+      - name: shellcheck - deardiary
         run: shellcheck deardiary/deardiary
 
-      - name: [shellcheck] http-check
+      - name: shellcheck - http-check
         run: shellcheck http-check/http-check
