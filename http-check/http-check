@@ -7,7 +7,7 @@
 set -u
 set -o pipefail
 
-if ! which curl >/dev/null 2>&1 ; then
+if ! command -v curl >/dev/null 2>&1 ; then
   echo "Error: this script requires curl to operate." >&2
   exit 1
 fi
