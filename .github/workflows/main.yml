@@ -43,7 +43,7 @@ jobs:
         run: shellcheck http-check/http-check
 
   semgrep:
-    name: Scan
+    name: SAST
     runs-on: ubuntu-20.04
     container:
       image: returntocorp/semgrep

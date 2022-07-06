@@ -53,7 +53,7 @@ function lock() {
   export _lock_output
   if [ "$( check_state )" == "decrypted" ]; then
     if yesno "Lock file?" ; then
-      if _lock_output="$( openssl des3 -in ${decrytpedFileName} -out ${encryptedFileName} 2>&1 )" ; then
+      if _lock_output="$( openssl des3 -in "${decrytpedFileName}" -out "${encryptedFileName}" 2>&1 )" ; then
         echo "File locked!"
         rm "${decrytpedFileName}"
       else
@@ -75,7 +75,7 @@ function unlock() {
   export _unlock_output
   if [ "$( check_state )" == "encrypted" ]; then
     if yesno "Unlock file?" ; then
-      if _unlock_output="$( openssl des3 -d -in ${encryptedFileName} -out ${decrytpedFileName} 2>&1 )" ; then
+      if _unlock_output="$( openssl des3 -d -in "${encryptedFileName}" -out "${decrytpedFileName}" 2>&1 )" ; then
         echo "File unlocked!"
         rm "${encryptedFileName}"
       else

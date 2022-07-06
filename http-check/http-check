@@ -63,5 +63,5 @@ else
   echo "FAIL" | column -t
 fi
   ((totalRunCount++))
-sleep ${checkDelay}
+sleep "${checkDelay}"
 done
