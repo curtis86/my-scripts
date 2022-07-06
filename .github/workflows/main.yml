@@ -16,7 +16,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  Test:
+  Test/shellcheck:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -42,5 +42,11 @@ jobs:
       - name: shellcheck - http-check
         run: shellcheck http-check/http-check
 
-      - name: semgrep
-        run: semgrep --config=auto .
+semgrep:
+    name: Scan/semgrep
+    runs-on: ubuntu-20.04
+    container:
+      image: returntocorp/semgrep
+    steps:
+    - uses: actions/checkout@v3
+    - run: semgrep ci --config=auto
