@@ -41,3 +41,6 @@ jobs:
 
       - name: shellcheck - http-check
         run: shellcheck http-check/http-check
+
+      - name: semgrep
+        run: semgrep --config=auto .
