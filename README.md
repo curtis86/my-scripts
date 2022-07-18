@@ -18,13 +18,7 @@ If you'd prefer to run these scripts inside a container, follow the instructions
 
 ### A. Use automatically built Dockerhub image
 
-1. Pull image
-
-```
-docker pull curtiskneisel/my-scripts:latest
-```
-
-2. Run the `cert-recon` script on container named `curtis-86-scripts`:
+1. Run the `cert-recon` script on container named `curtis-86-scripts`:
 
 ```
 docker run -it --name curtis-86-scripts curtiskneisel/my-scripts:latest /opt/my-scripts/cert-recon/cert-recon example.com
