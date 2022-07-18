@@ -13,7 +13,26 @@ Feel free to use them as you like, credit is optional :)
 
 ### Docker
 
-If you'd prefer to run these scripts inside a container, here are  instructions for building your own docker image. Note that you'll want to factor in persistent storage if you use a script such as `deardiary`
+If you'd prefer to run these scripts inside a container, follow the instructions below. Note that you'll want to factor in persistent storage if you use a script such as `deardiary`
+
+
+### A. Use automatically built Dockerhub image
+
+1. Pull image
+
+```
+docker pull curtiskneisel/my-scripts:latest
+```
+
+2. Run the `cert-recon` script on container named `curtis-86-scripts`:
+
+```
+docker run -it --name curtis-86-scripts curtiskneisel/my-scripts:latest /opt/my-scripts/cert-recon/cert-recon example.com
+
+```
+
+
+### B. Build your own docker image
 
 1. Clone this repo and change into the directory
 
