@@ -9,7 +9,7 @@ Retrieves all certificates issued for a particular domain name from public certi
 ## Example
 
 ```
-/cert-recon.sh -d example.com
+./cert-recon.sh example.com
 Got 9 certs:
 1. *.example.com
 2. dev.example.com
