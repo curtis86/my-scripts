@@ -31,7 +31,7 @@ docker run -it --name curtis-86-scripts curtiskneisel/my-scripts:latest /opt/my-
 1. Clone this repo and change into the directory
 
 ```
-git glone https://github.com/curtis86/my-scripts/
+git clone https://github.com/curtis86/my-scripts/
 cd my-scripts
 ```
 
